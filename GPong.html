@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>GPong 1.0</title>
+  <style>
+     html, body {
+       height: 100%;
+       margin: 0;
+     }
+
+     body {
+       background: black;
+       display: flex;
+       align-items: center;
+       justify-content: center;
+     }
+
+     canvas {
+       border: 1px solid white;
+     }
+
+     .grid-pong {
+         display: grid;
+         grid-template-columns: 100%;
+         padding: 1% 0 3% 5%;
+         grid-row-gap: 1%;
+    }
+
+    #buttonPlay {
+         background-color: red;
+         color: white;
+         font-family : 'monospace';
+         font-weight: bolder;
+         font-size : 30px;
+    }
+
+  </style>
+</head>
+<body>
+   <div class="grid-pong">
+   <canvas width="1000" height="540" id="myCanvas"></canvas>
+   <button id="buttonPlay" onclick="startGame()">Play</button>
+   </div>
+   <script>
+      const canvas = document.getElementById("myCanvas");
+      const ctx = canvas.getContext("2d");
+
+      // Title
+      var titleGame = "*** GPong 1.0 ***"
+      var posX = 0;
+      var posY = 0;
+      // rect 
+      var dimBX = 150;
+      var dimBY = 15;
+      var posBX = canvas.width/2-dimBX/2; // Posizione X Barra inizio
+      var posBY = canvas.height-dimBY*2; // Posizione X Barra Fine
+      var movX = 20;
+      var movXMouse = 10;
+      // ball
+      var radius = 13;
+      var posBallX = canvas.width/2;
+      var posBallY = canvas.height/2
+      var speedBall = 2;
+      var incrSpeed = 0.001;
+      var maxSpeed = 13;
+      var deltaBallX = 1;
+      var deltaBallY = 1;
+      var score = 0;
+
+      // Variable Games
+      let gameOver = false;
+      let gameStart = true;
+
+      function eraseCanvas() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+      }
+
+      // show the game over screen
+      function showGameOver() {
+        cancelAnimationFrame(rAF);
+        gameOver = true;
+
+        ctx.fillStyle = 'red';
+        ctx.globalAlpha = 0.75;
+        ctx.fillRect(0, canvas.height / 2 - 30, canvas.width, 60);
+
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = 'white';
+        ctx.font = '40px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
+        document.getElementById("buttonPlay").disabled = false;
+      }
+
+      // show the start game screen
+      function showStartGame() {
+        ctx.fillStyle = 'red';
+        ctx.globalAlpha = 0.75;
+        ctx.fillRect(0, canvas.height / 2 - 30, canvas.width, 60);
+
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = 'white';
+        ctx.font = '40px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(titleGame, canvas.width / 2, canvas.height / 2);
+        document.getElementById("buttonPlay").disabled = false;
+      }
+
+      function loop() {
+            rAF = requestAnimationFrame(loop);
+            eraseCanvas();
+            // draw the score 
+            ctx.beginPath();
+            ctx.fillStyle = 'blue';
+            ctx.font = "50px monospace";
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillText("Score : " + score, 10, 50);
+            ctx.closePath();
+            // draw the bar
+            ctx.fillStyle = 'red';
+            ctx.fillRect(posBX, posBY, dimBX, dimBY);
+            // draw the ball
+            ctx.beginPath();
+            ctx.fillStyle = 'blue';
+            ctx.arc(posBallX, posBallY, radius, 0, 2 * Math.PI, false);
+            ctx.fill();
+            ctx.closePath();
+
+            // Left Border
+            if ( posBallX + deltaBallX - radius <= 0 ) deltaBallX = 1;
+            // Rigth Border
+            if ( posBallX + deltaBallX + radius >= canvas.width ) deltaBallX = -1;
+            // High Border
+            if ( posBallY + deltaBallY - radius <= 0 ) deltaBallY = 1;
+            // Low Border
+            if ( posBallY + deltaBallY + radius >= canvas.height ) {
+              return showGameOver();
+            }  
+            // Collision with Bar
+            if ( posBallX >= posBX &&
+                 posBallX <= (posBX+dimBX) &&
+                 (posBallY + radius/2) >= (posBY-dimBY/2) )
+            {
+              if ( deltaBallY > 0 ) score++;
+              deltaBallY = -1
+            }     
+
+            if ( speedBall < maxSpeed ) speedBall+=incrSpeed;
+
+            // Move Ball
+            if ( !gameOver )
+            {
+              posBallX+=deltaBallX*speedBall;
+              posBallY+=deltaBallY*speedBall;
+            }
+      }
+
+      // listen to keyboard events to move the active tetromino
+      document.addEventListener('keydown', function(e) {
+        if (gameOver) return;
+        // left key
+        if ( e.which === 37 ) {
+           if ( posBX-movX > 0 ) posBX-=movX;
+        }
+        // rigth key
+        if ( e.which === 39 ) {
+           if ( posBX+movX < canvas.width-dimBX ) posBX+=movX;
+        }
+      });
+
+      // listner mouse 
+      document.addEventListener('mousemove', function(e) {
+        var oldx = 0;
+        if (e.movementX < oldx) {
+           if ( posBX-movXMouse > 0 ) posBX-=movXMouse;
+        } else if (e.movementX > oldx) {
+           if ( posBX+movXMouse < canvas.width-dimBX ) posBX+=movXMouse;
+        }
+        oldx = e.pageX;
+      });  
+
+      function startGame() {
+        document.getElementById("buttonPlay").disabled = true;
+        gameOver = false;
+        gameStart = false;
+        score = 0;
+        posBallX = canvas.width/2;
+        posBallY = canvas.height/4;
+        speedBall = 2;
+        deltaBallX = 1;
+        deltaBallY = 1;
+        rAF = requestAnimationFrame(loop);
+      }
+
+      if ( gameStart ) showStartGame();
+
+   </script>
+</body>
+</html>    
