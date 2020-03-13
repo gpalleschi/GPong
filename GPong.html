@@ -52,8 +52,8 @@
       // rect 
       var dimBX = 150;
       var dimBY = 15;
-      var posBX = canvas.width/2-dimBX/2; // Posizione X Barra inizio
-      var posBY = canvas.height-dimBY*2; // Posizione X Barra Fine
+      var posBX = canvas.width/2-dimBX/2; // Bar Start Position X
+      var posBY = canvas.height-dimBY*2; // Bar Start Position Y
       var movX = 20;
       var movXMouse = 10;
       // ball
@@ -187,8 +187,11 @@
         gameOver = false;
         gameStart = false;
         score = 0;
+        // Set Start Position of all elements
         posBallX = canvas.width/2;
         posBallY = canvas.height/4;
+        posBX = canvas.width/2-dimBX/2; 
+        posBY = canvas.height-dimBY*2; 
         speedBall = 2;
         deltaBallX = 1;
         deltaBallY = 1;
